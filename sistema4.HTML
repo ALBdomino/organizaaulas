@@ -1,0 +1,1265 @@
+<!doctype html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Organiza Aulas (Supabase)</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #f6f7f6;
+      --card: #fff;
+      --text: #1f2a1f;
+      --muted: #6f7a6f;
+      --line: #e5e8e5;
+      --green: #2f4f3a;
+      --green2: #3f6b4e;
+      --soft: #edf1ed;
+      --danger: #c64a4a;
+      --shadow: 0 10px 30px rgba(0, 0, 0, .08);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text)
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: 100vh
+    }
+
+    .sidebar {
+      background: #f3f5f3;
+      border-right: 1px solid var(--line);
+      padding: 24px 18px;
+      position: sticky;
+      top: 0;
+      height: 100vh
+    }
+
+    .brand {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 8px 10px 18px
+    }
+
+    .logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--green), #24402f);
+      box-shadow: var(--shadow)
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.1
+    }
+
+    .brand p {
+      margin: 4px 0 0;
+      font-size: 12px;
+      color: var(--muted)
+    }
+
+    .nav {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px
+    }
+
+    .nav button {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 1px solid transparent;
+      border-radius: 14px;
+      background: transparent;
+      cursor: pointer;
+      font-size: 14px;
+      color: #2a362a
+    }
+
+    .nav button:hover {
+      background: #e9ede9
+    }
+
+    .nav button.active {
+      background: #e6ece6;
+      border-color: #d7ded7
+    }
+
+    .icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 12px;
+      background: #fff;
+      border: 1px solid var(--line);
+      display: grid;
+      place-items: center;
+      color: var(--green);
+      font-weight: 800
+    }
+
+    .profile {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: 18px;
+      border-top: 1px solid var(--line);
+      padding-top: 14px;
+      display: flex;
+      gap: 10px;
+      align-items: center
+    }
+
+    .avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #dfe5df;
+      display: grid;
+      place-items: center;
+      color: var(--green);
+      font-weight: 900
+    }
+
+    .meta {
+      min-width: 0
+    }
+
+    .meta b {
+      display: block;
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    .meta span {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    .main {
+      padding: 28px
+    }
+
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px
+    }
+
+    .topbar h2 {
+      margin: 0;
+      font-size: 34px;
+      line-height: 1.05
+    }
+
+    .topbar p {
+      margin: 8px 0 0;
+      color: var(--muted)
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 10px 14px;
+      border-radius: 14px;
+      cursor: pointer;
+      font-weight: 700
+    }
+
+    .btn.primary {
+      background: var(--green);
+      border-color: var(--green);
+      color: #fff
+    }
+
+    .btn.primary:hover {
+      background: var(--green2)
+    }
+
+    .btn.danger {
+      border-color: #f1d0d0;
+      background: #fff;
+      color: var(--danger)
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px
+    }
+
+    .stat {
+      grid-column: span 4;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px
+    }
+
+    .stat b {
+      font-size: 34px
+    }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-weight: 800;
+      letter-spacing: .02em
+    }
+
+    .badgeIcon {
+      width: 44px;
+      height: 44px;
+      border-radius: 16px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      display: grid;
+      place-items: center;
+      color: var(--green);
+      font-size: 18px;
+      font-weight: 900
+    }
+
+    .panel {
+      grid-column: span 12;
+      padding: 0;
+      overflow: hidden
+    }
+
+    .panelHeader {
+      padding: 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px
+    }
+
+    .panelHeader h3 {
+      margin: 0;
+      font-size: 18px
+    }
+
+    .panelBody {
+      padding: 16px
+    }
+
+    .formRow {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px
+    }
+
+    .input,
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      outline: none;
+      font-size: 14px
+    }
+
+    .input:focus,
+    select:focus {
+      border-color: #b8c4b8;
+      box-shadow: 0 0 0 3px rgba(47, 79, 58, .12)
+    }
+
+    .list {
+      display: grid;
+      gap: 10px
+    }
+
+    .item {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: #fff
+    }
+
+    .info {
+      min-width: 0
+    }
+
+    .info b {
+      display: block
+    }
+
+    .info span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px
+    }
+
+    .tools {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end
+    }
+
+    .mini {
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+      cursor: pointer;
+      font-weight: 800;
+      font-size: 12px
+    }
+
+    .mini.danger {
+      color: var(--danger);
+      border-color: #f2d4d4
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #fff;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 900
+    }
+
+    .msgErr {
+      margin-top: 10px;
+      border: 1px solid #f2d4d4;
+      background: #fff3f3;
+      color: #8a2f2f;
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-weight: 800;
+      display: none;
+      white-space: pre-wrap
+    }
+
+    .msgOk {
+      margin-top: 10px;
+      border: 1px solid #cfe6d5;
+      background: #f2fbf4;
+      color: #1f4b2f;
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-weight: 800;
+      display: none;
+      white-space: pre-wrap
+    }
+
+    /* Calendar */
+    .calTop {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px
+    }
+
+    .calGrid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px
+    }
+
+    .dow {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 900;
+      text-align: center;
+      padding: 4px 0
+    }
+
+    .day {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      min-height: 76px;
+      padding: 10px;
+      cursor: pointer;
+      position: relative
+    }
+
+    .day:hover {
+      border-color: #b8c4b8;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, .06)
+    }
+
+    .day .n {
+      font-weight: 900;
+      font-size: 14px
+    }
+
+    .day.muted {
+      opacity: .35;
+      cursor: default
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green2);
+      position: absolute;
+      left: 10px;
+      bottom: 10px
+    }
+
+    /* Slide panel */
+    .slide {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: -520px;
+      height: 520px;
+      background: #fff;
+      border-top: 1px solid var(--line);
+      box-shadow: 0 -20px 40px rgba(0, 0, 0, .14);
+      border-radius: 22px 22px 0 0;
+      transition: bottom .25s ease;
+      padding: 14px 16px 16px;
+      z-index: 999
+    }
+
+    .slide.open {
+      bottom: 0
+    }
+
+    .slideHandle {
+      width: 54px;
+      height: 6px;
+      border-radius: 999px;
+      background: #dfe5df;
+      margin: 0 auto 10px
+    }
+
+    .slideHead {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 6px 0 12px;
+      border-bottom: 1px solid var(--line)
+    }
+
+    .slideHead b {
+      font-size: 16px
+    }
+
+    .slideBody {
+      padding-top: 12px;
+      height: 420px;
+      overflow: auto
+    }
+
+    .empty {
+      border: 1px dashed #cfd8cf;
+      background: #f6f9f6;
+      border-radius: 18px;
+      padding: 14px;
+      color: var(--muted);
+      font-weight: 800
+    }
+
+    @media (max-width:980px) {
+      .app {
+        grid-template-columns: 1fr
+      }
+
+      .sidebar {
+        position: relative;
+        height: auto
+      }
+
+      .profile {
+        position: relative;
+        left: auto;
+        right: auto;
+        bottom: auto;
+        margin-top: 16px
+      }
+
+      .stat {
+        grid-column: span 12
+      }
+
+      .main {
+        padding: 18px
+      }
+
+      .topbar h2 {
+        font-size: 28px
+      }
+
+      .formRow {
+        grid-template-columns: 1fr
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo"></div>
+        <div>
+          <h1>Organiza Aulas</h1>
+          <p>Supabase • sem localStorage</p>
+        </div>
+      </div>
+
+      <div class="nav">
+        <button class="active" data-view="dashboard"><span class="icon">D</span> Dashboard</button>
+        <button data-view="escolas"><span class="icon">E</span> Escolas</button>
+        <button data-view="turmas"><span class="icon">T</span> Turmas</button>
+        <button data-view="aulas"><span class="icon">A</span> Aulas</button>
+        <button data-view="alunos"><span class="icon">👥</span> Alunos</button>
+        <button data-view="calendario"><span class="icon">📅</span> Calendário</button>
+      </div>
+
+      <div class="profile">
+        <div class="avatar">A</div>
+        <div class="meta">
+          <b>Arthur</b>
+          <span id="connState">Conectando…</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h2 id="title">Dashboard</h2>
+          <p id="subtitle">Resumo geral do sistema.</p>
+        </div>
+        <div class="actions" id="topActions"></div>
+      </div>
+
+      <div class="msgErr" id="msgErr"></div>
+      <div class="msgOk" id="msgOk"></div>
+
+      <!-- DASH -->
+      <section class="view" id="view-dashboard">
+        <div class="grid">
+          <div class="card stat">
+            <div><span>ESCOLAS</span><b id="countEscolas">0</b></div>
+            <div class="badgeIcon">🏫</div>
+          </div>
+          <div class="card stat">
+            <div><span>TURMAS</span><b id="countTurmas">0</b></div>
+            <div class="badgeIcon">📚</div>
+          </div>
+          <div class="card stat">
+            <div><span>AULAS</span><b id="countAulas">0</b></div>
+            <div class="badgeIcon">⏱</div>
+          </div>
+
+          <div class="card panel">
+            <div class="panelHeader">
+              <h3>Atalho</h3>
+              <span class="pill">Supabase</span>
+            </div>
+            <div class="panelBody">
+              <button class="btn primary" id="goEscolas">Cadastrar escola</button>
+              <button class="btn" id="goCalendario">Abrir calendário</button>
+              <button class="btn danger" id="pingDb" style="float:right">Testar conexão</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ESCOLAS -->
+      <section class="view" id="view-escolas" style="display:none">
+        <div class="grid">
+          <div class="card panel">
+            <div class="panelHeader">
+              <h3>Escolas</h3>
+              <button class="btn primary" id="refreshEscolas">Atualizar</button>
+            </div>
+            <div class="panelBody">
+              <div class="formRow">
+                <input class="input" id="escolaNome" placeholder="Nome da escola (ex: Objetivo)" />
+                <div></div>
+              </div>
+              <button class="btn" id="saveEscola">Salvar escola</button>
+              <div style="height:14px"></div>
+              <div class="list" id="listaEscolas"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TURMAS -->
+      <section class="view" id="view-turmas" style="display:none">
+        <div class="grid">
+          <div class="card panel">
+            <div class="panelHeader">
+              <h3>Turmas</h3>
+              <button class="btn primary" id="refreshTurmas">Atualizar</button>
+            </div>
+            <div class="panelBody">
+              <div class="formRow">
+                <select id="turmaEscola" class="input"></select>
+                <input class="input" id="turmaNome" placeholder="Nome da turma (ex: 8º ano A)" />
+              </div>
+              <button class="btn" id="saveTurma">Salvar turma</button>
+              <div style="height:14px"></div>
+              <div class="list" id="listaTurmas"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- AULAS -->
+      <section class="view" id="view-aulas" style="display:none">
+        <div class="grid">
+          <div class="card panel">
+            <div class="panelHeader">
+              <h3>Aulas</h3>
+              <button class="btn primary" id="refreshAulas">Atualizar</button>
+            </div>
+            <div class="panelBody">
+              <div class="formRow">
+                <select id="aulaEscola" class="input"></select>
+                <select id="aulaTurma" class="input"></select>
+              </div>
+              <div class="formRow">
+                <select id="aulaDiaSemana" class="input">
+                  <option value="1">Segunda</option>
+                  <option value="2">Terça</option>
+                  <option value="3">Quarta</option>
+                  <option value="4">Quinta</option>
+                  <option value="5">Sexta</option>
+                  <option value="6">Sábado</option>
+                  <option value="0">Domingo</option>
+                </select>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                  <input class="input" id="aulaInicio" placeholder="Início (ex: 08:00)" />
+                  <input class="input" id="aulaFim" placeholder="Fim (ex: 09:00)" />
+                </div>
+              </div>
+              <button class="btn" id="saveAula">Salvar aula</button>
+              <div style="height:14px"></div>
+              <div class="list" id="listaAulas"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ALUNOS -->
+      <section class="view" id="view-alunos" style="display:none">
+        <div class="grid">
+          <div class="card panel">
+            <div class="panelHeader">
+              <h3>Alunos</h3>
+              <button class="btn primary" id="refreshAlunos">Atualizar</button>
+            </div>
+            <div class="panelBody">
+              <div class="formRow">
+                <select id="alunoTurma" class="input"></select>
+                <input class="input" id="alunoNome" placeholder="Nome do aluno" />
+              </div>
+              <button class="btn" id="saveAluno">Salvar aluno</button>
+              <div style="height:14px"></div>
+              <div class="list" id="listaAlunos"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CALENDÁRIO -->
+      <section class="view" id="view-calendario" style="display:none">
+        <div class="grid">
+          <div class="card panel">
+            <div class="panelHeader">
+              <h3>Calendário</h3>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+                <button class="btn" id="prevMonth">◀</button>
+                <button class="btn" id="todayMonth">Hoje</button>
+                <button class="btn" id="nextMonth">▶</button>
+              </div>
+            </div>
+            <div class="panelBody">
+              <div class="calTop">
+                <b id="monthLabel">Mês</b>
+                <span class="pill">Clique em um dia</span>
+              </div>
+              <div style="height:10px"></div>
+              <div class="calGrid">
+                <div class="dow">Dom</div>
+                <div class="dow">Seg</div>
+                <div class="dow">Ter</div>
+                <div class="dow">Qua</div>
+                <div class="dow">Qui</div>
+                <div class="dow">Sex</div>
+                <div class="dow">Sáb</div>
+              </div>
+              <div style="height:8px"></div>
+              <div class="calGrid" id="calDays"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <div class="slide" id="slide">
+    <div class="slideHandle"></div>
+    <div class="slideHead">
+      <b id="slideTitle">Dia</b>
+      <button class="btn" id="closeSlide">Fechar</button>
+    </div>
+    <div class="slideBody" id="slideBody"></div>
+  </div>
+
+  <script>
+    (() => {
+      // =========================
+      // CONFIG (cole sua chave aqui)
+      // =========================
+      const SUPABASE_URL = "https://zombvofhbsfepqrmszho.supabase.co";
+      const SUPABASE_ANON_KEY = "sb_publishable_xld1mzORMYSea5dojYiFMQ_5GNyp3L1";
+
+      const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      // =========================
+      // UI helpers
+      // =========================
+      const $ = (id) => document.getElementById(id);
+      const msgErr = $("msgErr"), msgOk = $("msgOk");
+      function showErr(text) { msgOk.style.display = "none"; msgErr.textContent = text; msgErr.style.display = "block"; }
+      function showOk(text) { msgErr.style.display = "none"; msgOk.textContent = text; msgOk.style.display = "block"; setTimeout(() => msgOk.style.display = "none", 2500); }
+      function clearMsg() { msgErr.style.display = "none"; msgOk.style.display = "none"; }
+      function esc(s) { return String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;"); }
+
+      // =========================
+      // Navigation
+      // =========================
+      function showView(name) {
+        document.querySelectorAll(".view").forEach(v => v.style.display = "none");
+        $("view-" + name).style.display = "";
+        document.querySelectorAll(".nav button").forEach(b => b.classList.toggle("active", b.dataset.view === name));
+
+        clearMsg();
+
+        if (name === "dashboard") {
+          $("title").textContent = "Dashboard";
+          $("subtitle").textContent = "Resumo geral do sistema.";
+          refreshAllCounts();
+        }
+        if (name === "escolas") {
+          $("title").textContent = "Escolas";
+          $("subtitle").textContent = "Cadastre escolas. Depois crie turmas em cima delas.";
+          loadEscolas();
+        }
+        if (name === "turmas") {
+          $("title").textContent = "Turmas";
+          $("subtitle").textContent = "Selecione a escola e cadastre a turma.";
+          loadEscolasSelects().then(loadTurmas);
+        }
+        if (name === "aulas") {
+          $("title").textContent = "Aulas";
+          $("subtitle").textContent = "Crie aulas por dia da semana e horário (alimenta o calendário).";
+          loadEscolasSelects().then(loadAulas);
+        }
+        if (name === "alunos") {
+          $("title").textContent = "Alunos";
+          $("subtitle").textContent = "Cadastre alunos dentro das turmas.";
+          loadTurmasSelect().then(loadAlunos);
+        }
+        if (name === "calendario") {
+          $("title").textContent = "Calendário";
+          $("subtitle").textContent = "Clique em um dia e veja as aulas daquele dia.";
+          renderCalendar();
+        }
+      }
+
+      document.querySelectorAll(".nav button").forEach(btn => {
+        btn.addEventListener("click", () => showView(btn.dataset.view));
+      });
+
+      // =========================
+      // Connection test
+      // =========================
+      async function ping() {
+        clearMsg();
+        const { error } = await db.from("escolas").select("id").limit(1);
+        if (error) {
+          $("connState").textContent = "Erro no Supabase";
+          showErr("Falha ao conectar/ler 'escolas'.\n\n" + (error.message || JSON.stringify(error)));
+        } else {
+          $("connState").textContent = "Supabase OK";
+          showOk("Conexão OK ✅");
+        }
+      }
+
+      $("pingDb").addEventListener("click", ping);
+      $("goEscolas").addEventListener("click", () => showView("escolas"));
+      $("goCalendario").addEventListener("click", () => showView("calendario"));
+
+      // =========================
+      // Data loaders (counts)
+      // =========================
+      async function refreshAllCounts() {
+        const [e, t, a] = await Promise.all([
+          db.from("escolas").select("id", { count: "exact", head: true }),
+          db.from("turmas").select("id", { count: "exact", head: true }),
+          db.from("aulas").select("id", { count: "exact", head: true }),
+        ]);
+
+        $("countEscolas").textContent = e.count ?? 0;
+        $("countTurmas").textContent = t.count ?? 0;
+        $("countAulas").textContent = a.count ?? 0;
+      }
+
+      // =========================
+      // ESCOLAS (CRUD)
+      // =========================
+      async function loadEscolas() {
+        const wrap = $("listaEscolas");
+        wrap.innerHTML = "Carregando…";
+
+        const { data, error } = await db.from("escolas").select("id,nome").order("nome");
+        if (error) return showErr("Erro ao carregar escolas:\n" + (error.message || JSON.stringify(error)));
+
+        if (!data || data.length === 0) {
+          wrap.innerHTML = `<div class="empty">Nenhuma escola cadastrada ainda.</div>`;
+          return;
+        }
+
+        wrap.innerHTML = "";
+        data.forEach(e => {
+          wrap.insertAdjacentHTML("beforeend", `
+        <div class="item">
+          <div class="info">
+            <b>${esc(e.nome)}</b>
+            <span>ID: ${esc(e.id)}</span>
+          </div>
+          <div class="tools">
+            <button class="mini danger" data-del="${esc(e.id)}">Excluir</button>
+          </div>
+        </div>
+      `);
+        });
+
+        wrap.querySelectorAll("[data-del]").forEach(btn => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-del");
+            if (!confirm("Excluir esta escola?")) return;
+
+            const { error } = await db.from("escolas").delete().eq("id", id);
+            if (error) return showErr("Erro ao excluir escola:\n" + (error.message || JSON.stringify(error)));
+
+            showOk("Escola excluída.");
+            loadEscolas();
+            refreshAllCounts();
+          });
+        });
+      }
+
+      $("saveEscola").addEventListener("click", async () => {
+        const nome = ($("escolaNome").value || "").trim();
+        if (!nome) return showErr("Digite o nome da escola.");
+
+        const { error } = await db.from("escolas").insert([{ nome }]);
+        if (error) return showErr("Erro ao salvar escola:\n" + (error.message || JSON.stringify(error)));
+
+        $("escolaNome").value = "";
+        showOk("Escola salva ✅");
+        loadEscolas();
+        refreshAllCounts();
+        loadEscolasSelects(); // atualiza selects
+      });
+
+      $("refreshEscolas").addEventListener("click", loadEscolas);
+
+      // =========================
+      // Selects helpers
+      // =========================
+      async function loadEscolasSelects() {
+        const { data, error } = await db.from("escolas").select("id,nome").order("nome");
+        if (error) { showErr("Erro ao carregar escolas (select):\n" + (error.message || JSON.stringify(error))); return []; }
+
+        const escolaSelects = [$("turmaEscola"), $("aulaEscola")].filter(Boolean);
+        escolaSelects.forEach(sel => {
+          const old = sel.value;
+          sel.innerHTML = `<option value="">Selecione a escola…</option>` + (data || []).map(e => `<option value="${esc(e.nome)}">${esc(e.nome)}</option>`).join("");
+          sel.value = old;
+        });
+
+        // quando troca escola em aulas, filtra turmas
+        $("aulaEscola")?.addEventListener("change", loadTurmasForAulasSelect);
+
+        // turmas para o cadastro de alunos também depende disso (via turmaSelect separado)
+        await loadTurmasForAulasSelect();
+        return data || [];
+      }
+
+      async function loadTurmasForAulasSelect() {
+        const escolaNome = $("aulaEscola")?.value || "";
+        const { data, error } = escolaNome
+          ? await db.from("turmas").select("id,nome,escola").eq("escola", escolaNome).order("nome")
+          : await db.from("turmas").select("id,nome,escola").order("nome");
+
+        if (error) { showErr("Erro ao carregar turmas (select):\n" + (error.message || JSON.stringify(error))); return; }
+
+        const sel = $("aulaTurma");
+        if (!sel) return;
+        sel.innerHTML = `<option value="">Selecione a turma…</option>` + (data || []).map(t => `<option value="${esc(t.nome)}">${esc(t.nome)} (${esc(t.escola)})</option>`).join("");
+      }
+
+      async function loadTurmasSelect() {
+        const { data, error } = await db.from("turmas").select("id,nome,escola").order("escola").order("nome");
+        if (error) { showErr("Erro ao carregar turmas (select aluno):\n" + (error.message || JSON.stringify(error))); return []; }
+
+        const sel = $("alunoTurma");
+        sel.innerHTML = `<option value="">Selecione a turma…</option>` + (data || []).map(t => `<option value="${esc(t.nome)}||${esc(t.escola)}">${esc(t.escola)} • ${esc(t.nome)}</option>`).join("");
+        return data || [];
+      }
+
+      // =========================
+      // TURMAS (CRUD) - usa turmas.escola (texto)
+      // =========================
+      async function loadTurmas() {
+        const wrap = $("listaTurmas");
+        wrap.innerHTML = "Carregando…";
+
+        const { data, error } = await db.from("turmas").select("id,nome,escola").order("escola").order("nome");
+        if (error) return showErr("Erro ao carregar turmas:\n" + (error.message || JSON.stringify(error)));
+
+        if (!data || data.length === 0) {
+          wrap.innerHTML = `<div class="empty">Nenhuma turma ainda. Cadastre uma turma.</div>`;
+          return;
+        }
+
+        wrap.innerHTML = "";
+        data.forEach(t => {
+          wrap.insertAdjacentHTML("beforeend", `
+        <div class="item">
+          <div class="info">
+            <b>${esc(t.nome)}</b>
+            <span>${esc(t.escola)}</span>
+          </div>
+          <div class="tools">
+            <button class="mini danger" data-del="${esc(t.id)}">Excluir</button>
+          </div>
+        </div>
+      `);
+        });
+
+        wrap.querySelectorAll("[data-del]").forEach(btn => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-del");
+            if (!confirm("Excluir esta turma?")) return;
+
+            const { error } = await db.from("turmas").delete().eq("id", id);
+            if (error) return showErr("Erro ao excluir turma:\n" + (error.message || JSON.stringify(error)));
+
+            showOk("Turma excluída.");
+            loadTurmas();
+            loadTurmasSelect();
+            refreshAllCounts();
+          });
+        });
+      }
+
+      $("saveTurma").addEventListener("click", async () => {
+        const escola = $("turmaEscola").value;
+        const nome = ($("turmaNome").value || "").trim();
+        if (!escola) return showErr("Selecione uma escola.");
+        if (!nome) return showErr("Digite o nome da turma.");
+
+        const { error } = await db.from("turmas").insert([{ nome, escola }]);
+        if (error) return showErr("Erro ao salvar turma:\n" + (error.message || JSON.stringify(error)));
+
+        $("turmaNome").value = "";
+        showOk("Turma salva ✅");
+        loadTurmas();
+        loadTurmasSelect();
+        refreshAllCounts();
+      });
+
+      $("refreshTurmas").addEventListener("click", loadTurmas);
+
+      // =========================
+      // AULAS (CRUD) - usa aulas.escola/aulas.turma (texto)
+      // =========================
+      async function loadAulas() {
+        const wrap = $("listaAulas");
+        wrap.innerHTML = "Carregando…";
+
+        const { data, error } = await db.from("aulas").select("id,escola,turma,dow,inicio,fim,status").order("escola").order("turma");
+        if (error) return showErr("Erro ao carregar aulas:\n" + (error.message || JSON.stringify(error)));
+
+        if (!data || data.length === 0) {
+          wrap.innerHTML = `<div class="empty">Nenhuma aula ainda. Cadastre uma aula.</div>`;
+          return;
+        }
+
+        wrap.innerHTML = "";
+        data.forEach(a => {
+          wrap.insertAdjacentHTML("beforeend", `
+        <div class="item">
+          <div class="info">
+            <b>${esc(dowLabel(a.dow))} • ${esc(a.inicio)} - ${esc(a.fim)}</b>
+            <span>${esc(a.escola)} • ${esc(a.turma)} • ${esc(a.status)}</span>
+          </div>
+          <div class="tools">
+            <button class="mini danger" data-del="${esc(a.id)}">Excluir</button>
+          </div>
+        </div>
+      `);
+        });
+
+        wrap.querySelectorAll("[data-del]").forEach(btn => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-del");
+            if (!confirm("Excluir esta aula?")) return;
+
+            const { error } = await db.from("aulas").delete().eq("id", id);
+            if (error) return showErr("Erro ao excluir aula:\n" + (error.message || JSON.stringify(error)));
+
+            showOk("Aula excluída.");
+            loadAulas();
+            refreshAllCounts();
+          });
+        });
+      }
+
+      function dowLabel(d) {
+        const m = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+        return m[Number(d)] ?? "Dia";
+      }
+
+      $("saveAula").addEventListener("click", async () => {
+        const escola = $("aulaEscola").value;
+        const turma = $("aulaTurma").value;
+        const dow = Number($("aulaDiaSemana").value);
+        const inicio = ($("aulaInicio").value || "").trim();
+        const fim = ($("aulaFim").value || "").trim();
+
+        if (!escola) return showErr("Selecione uma escola.");
+        if (!turma) return showErr("Selecione uma turma.");
+        if (!inicio || !fim) return showErr("Preencha início e fim (ex: 08:00 e 09:00).");
+
+        const { error } = await db.from("aulas").insert([{ escola, turma, dow, inicio, fim, status: "Planejada" }]);
+        if (error) return showErr("Erro ao salvar aula:\n" + (error.message || JSON.stringify(error)));
+
+        $("aulaInicio").value = ""; $("aulaFim").value = "";
+        showOk("Aula salva ✅");
+        loadAulas();
+        refreshAllCounts();
+      });
+
+      $("refreshAulas").addEventListener("click", loadAulas);
+
+      // =========================
+      // ALUNOS (CRUD) - usa alunos.escola/alunos.turma (texto)
+      // =========================
+      async function loadAlunos() {
+        const wrap = $("listaAlunos");
+        wrap.innerHTML = "Carregando…";
+
+        const { data, error } = await db.from("alunos").select("id,nome,escola,turma").order("escola").order("turma").order("nome");
+        if (error) return showErr("Erro ao carregar alunos:\n" + (error.message || JSON.stringify(error)));
+
+        if (!data || data.length === 0) {
+          wrap.innerHTML = `<div class="empty">Nenhum aluno ainda. Cadastre um aluno.</div>`;
+          return;
+        }
+
+        wrap.innerHTML = "";
+        data.forEach(al => {
+          wrap.insertAdjacentHTML("beforeend", `
+        <div class="item">
+          <div class="info">
+            <b>${esc(al.nome)}</b>
+            <span>${esc(al.escola)} • ${esc(al.turma)}</span>
+          </div>
+          <div class="tools">
+            <button class="mini danger" data-del="${esc(al.id)}">Excluir</button>
+          </div>
+        </div>
+      `);
+        });
+
+        wrap.querySelectorAll("[data-del]").forEach(btn => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-del");
+            if (!confirm("Excluir este aluno?")) return;
+
+            const { error } = await db.from("alunos").delete().eq("id", id);
+            if (error) return showErr("Erro ao excluir aluno:\n" + (error.message || JSON.stringify(error)));
+
+            showOk("Aluno excluído.");
+            loadAlunos();
+          });
+        });
+      }
+
+      $("saveAluno").addEventListener("click", async () => {
+        const v = $("alunoTurma").value; // "turma||escola"
+        const nome = ($("alunoNome").value || "").trim();
+        if (!v) return showErr("Selecione a turma.");
+        if (!nome) return showErr("Digite o nome do aluno.");
+
+        const [turma, escola] = v.split("||");
+
+        const { error } = await db.from("alunos").insert([{ nome, escola, turma }]);
+        if (error) return showErr("Erro ao salvar aluno:\n" + (error.message || JSON.stringify(error)));
+
+        $("alunoNome").value = "";
+        showOk("Aluno salvo ✅");
+        loadAlunos();
+      });
+
+      $("refreshAlunos").addEventListener("click", loadAlunos);
+
+      // =========================
+      // Calendar (puxa AULAS do Supabase)
+      // =========================
+      let calRef = new Date(); calRef.setDate(1);
+
+      function openSlide(open) { $("slide").classList.toggle("open", open); }
+      $("closeSlide").addEventListener("click", () => openSlide(false));
+
+      $("prevMonth").addEventListener("click", () => { calRef.setMonth(calRef.getMonth() - 1); renderCalendar(); });
+      $("nextMonth").addEventListener("click", () => { calRef.setMonth(calRef.getMonth() + 1); renderCalendar(); });
+      $("todayMonth").addEventListener("click", () => { calRef = new Date(); calRef.setDate(1); renderCalendar(); });
+
+      async function renderCalendar() {
+        const y = calRef.getFullYear(), m = calRef.getMonth();
+        const monthName = calRef.toLocaleString("pt-BR", { month: "long" });
+        $("monthLabel").textContent = `${monthName[0].toUpperCase() + monthName.slice(1)} de ${y}`;
+
+        const { data: aulas, error } = await db.from("aulas").select("escola,turma,dow,inicio,fim,status");
+        if (error) return showErr("Erro ao carregar aulas pro calendário:\n" + (error.message || JSON.stringify(error)));
+
+        const firstDow = new Date(y, m, 1).getDay();
+        const daysInMonth = new Date(y, m + 1, 0).getDate();
+        const cal = $("calDays");
+        cal.innerHTML = "";
+
+        const prevDays = new Date(y, m, 0).getDate();
+        for (let i = firstDow - 1; i >= 0; i--) {
+          cal.appendChild(dayCell(new Date(y, m - 1, prevDays - i), true, aulas));
+        }
+        for (let d = 1; d <= daysInMonth; d++) {
+          cal.appendChild(dayCell(new Date(y, m, d), false, aulas));
+        }
+        while (cal.children.length < 42) {
+          const nextIndex = cal.children.length - (firstDow + daysInMonth) + 1;
+          cal.appendChild(dayCell(new Date(y, m + 1, nextIndex), true, aulas));
+        }
+      }
+
+      function dayCell(dateObj, muted, aulas) {
+        const cell = document.createElement("div");
+        cell.className = "day" + (muted ? " muted" : "");
+        cell.innerHTML = `<div class="n">${dateObj.getDate()}</div>`;
+
+        const has = (aulas || []).some(a => Number(a.dow) === dateObj.getDay());
+        if (has) { const dot = document.createElement("div"); dot.className = "dot"; cell.appendChild(dot); }
+
+        if (!muted) {
+          cell.addEventListener("click", () => openDay(dateObj, aulas));
+        }
+        return cell;
+      }
+
+      function openDay(dateObj, aulas) {
+        const label = dateObj.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
+        $("slideTitle").textContent = label[0].toUpperCase() + label.slice(1);
+
+        const list = (aulas || []).filter(a => Number(a.dow) === dateObj.getDay());
+        const body = $("slideBody");
+        body.innerHTML = "";
+
+        if (list.length === 0) {
+          body.innerHTML = `<div class="empty">Nenhuma aula cadastrada para este dia (ainda).<br><br>
+      Demo visual: quando você cadastrar aulas, elas aparecem aqui automaticamente.</div>`;
+        } else {
+          list.forEach(a => {
+            body.insertAdjacentHTML("beforeend", `
+          <div class="item">
+            <div class="info">
+              <b>Aula • ${esc(a.inicio)} - ${esc(a.fim)}</b>
+              <span>${esc(a.escola)} • ${esc(a.turma)}</span>
+            </div>
+            <div class="tools"><span class="pill">${esc(a.status || "Planejada")}</span></div>
+          </div>
+        `);
+          });
+        }
+        openSlide(true);
+      }
+
+      // =========================
+      // Init
+      // =========================
+      async function init() {
+        await ping();                 // testa e mostra status
+        await refreshAllCounts();
+        await loadEscolasSelects();
+        showView("dashboard");
+      }
+
+      init();
+    })();
+  </script>
+</body>
+
+</html>
