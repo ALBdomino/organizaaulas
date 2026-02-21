@@ -564,6 +564,135 @@
         grid-template-columns: 1fr
       }
     }
+
+    /* ===== ASTRO CHAT (bolinha flutuante) ===== */
+    .astroFab {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      width: 58px;
+      height: 58px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--green), #24402f);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, .18);
+      border: 1px solid rgba(255, 255, 255, .18);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      z-index: 9999;
+      user-select: none;
+    }
+
+    .astroFab span {
+      color: #fff;
+      font-weight: 900;
+      letter-spacing: .5px;
+    }
+
+    .astroPanel {
+      position: fixed;
+      right: 18px;
+      bottom: 86px;
+      width: min(420px, calc(100vw - 36px));
+      height: 520px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .22);
+      overflow: hidden;
+      display: none;
+      z-index: 9999;
+    }
+
+    .astroPanel.open {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+
+    .astroHead {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: #fbfcfb;
+    }
+
+    .astroHead b {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+    }
+
+    .astroDot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--green2);
+      box-shadow: 0 0 0 4px rgba(63, 107, 78, .14);
+    }
+
+    .astroBody {
+      padding: 12px;
+      overflow: auto;
+      display: grid;
+      gap: 10px;
+      background: #f7faf7;
+    }
+
+    .astroMsg {
+      max-width: 88%;
+      padding: 10px 12px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: #fff;
+      line-height: 1.35;
+      font-size: 14px;
+      white-space: pre-wrap;
+    }
+
+    .astroMsg.user {
+      margin-left: auto;
+      background: #ffffff;
+    }
+
+    .astroMsg.bot {
+      margin-right: auto;
+    }
+
+    .astroFoot {
+      padding: 10px;
+      border-top: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      background: #fff;
+    }
+
+    .astroInput {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      outline: none;
+    }
+
+    .astroSend {
+      padding: 10px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--green);
+      background: var(--green);
+      color: #fff;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .astroSend:hover {
+      background: var(--green2);
+      border-color: var(--green2);
+    }
   </style>
 </head>
 
@@ -783,6 +912,25 @@
     <div class="slideBody" id="slideBody"></div>
   </div>
 
+  <!-- ===== ASTRO CHAT UI (bolinha + painel) ===== -->
+  <div class="astroFab" id="astroFab" title="Abrir Astro">
+    <span>★</span>
+  </div>
+
+  <div class="astroPanel" id="astroPanel" aria-hidden="true">
+    <div class="astroHead">
+      <b><span class="astroDot"></span> Astro</b>
+      <button class="btn" id="astroClose">Fechar</button>
+    </div>
+
+    <div class="astroBody" id="astroBody"></div>
+
+    <div class="astroFoot">
+      <input class="astroInput" id="astroInput" placeholder="Escreva sua mensagem..." />
+      <button class="astroSend" id="astroSend">Enviar</button>
+    </div>
+  </div>
+
   <script>
     (() => {
       // =========================
@@ -809,6 +957,71 @@
         const data = await resp.json();
         return data.resposta;
       }
+
+      // =========================
+      // ASTRO CHAT (bolinha) - ADICIONADO
+      // =========================
+      const astroFab = document.getElementById("astroFab");
+      const astroPanel = document.getElementById("astroPanel");
+      const astroClose = document.getElementById("astroClose");
+      const astroBody = document.getElementById("astroBody");
+      const astroInput = document.getElementById("astroInput");
+      const astroSend = document.getElementById("astroSend");
+
+      let astroBooted = false;
+
+      function astroOpen(open) {
+        astroPanel.classList.toggle("open", open);
+        astroPanel.setAttribute("aria-hidden", open ? "false" : "true");
+        if (open) {
+          if (!astroBooted) {
+            astroBooted = true;
+            astroAddBot("Bem-vindo! Eu sou o Astro. Como posso te ajudar? 🙂");
+          }
+          setTimeout(() => astroInput.focus(), 50);
+        }
+      }
+
+      function astroAddMsg(text, who) {
+        const div = document.createElement("div");
+        div.className = "astroMsg " + who;
+        div.textContent = text;
+        astroBody.appendChild(div);
+        astroBody.scrollTop = astroBody.scrollHeight;
+      }
+
+      function astroAddBot(text) { astroAddMsg(text, "bot"); }
+      function astroAddUser(text) { astroAddMsg(text, "user"); }
+
+      async function astroSendMsg() {
+        const txt = (astroInput.value || "").trim();
+        if (!txt) return;
+
+        astroInput.value = "";
+        astroAddUser(txt);
+
+        const typing = document.createElement("div");
+        typing.className = "astroMsg bot";
+        typing.textContent = "Digitando…";
+        astroBody.appendChild(typing);
+        astroBody.scrollTop = astroBody.scrollHeight;
+
+        try {
+          const resposta = await perguntarIA(txt);
+          typing.remove();
+          astroAddBot(resposta || "Não consegui responder agora. Tenta de novo.");
+        } catch (e) {
+          typing.remove();
+          astroAddBot("Deu erro ao falar com a IA. Se der CORS, precisa liberar na Edge Function.");
+        }
+      }
+
+      astroFab.addEventListener("click", () => astroOpen(!astroPanel.classList.contains("open")));
+      astroClose.addEventListener("click", () => astroOpen(false));
+      astroSend.addEventListener("click", astroSendMsg);
+      astroInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") astroSendMsg();
+      });
 
       // =========================
       // UI helpers
