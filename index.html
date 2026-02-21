@@ -794,32 +794,6 @@
       const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       // =========================
-      // IA (Supabase Edge Function) - AJUSTADO p/ parar 401
-      // =========================
-      async function perguntarIA(pergunta) {
-        const resp = await fetch(
-          "https://zombvofhbsfepqrmszho.functions.supabase.co/astroIA",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "apikey": SUPABASE_ANON_KEY,
-              "Authorization": "Bearer " + SUPABASE_ANON_KEY
-            },
-            body: JSON.stringify({ pergunta })
-          }
-        );
-
-        const data = await resp.json().catch(() => ({}));
-
-        if (!resp.ok) {
-          throw new Error((data && (data.error || data.message)) || ("HTTP " + resp.status));
-        }
-
-        return data.resposta ?? data.reply ?? "";
-      }
-
-      // =========================
       // UI helpers
       // =========================
       const $ = (id) => document.getElementById(id);
