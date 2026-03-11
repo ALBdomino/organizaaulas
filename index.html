@@ -948,22 +948,25 @@
       // =========================
       // IA (Supabase Edge Function)
       // =========================
-     async function perguntarIA(pergunta) {
-  const resp = await fetch(
-    "https://zombvofhbsfepqrmszho.functions.supabase.co/astroIA",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ message: pergunta })
-    }
-  );
+      async function perguntarIA(pergunta) {
+        const resp = await fetch(
+          "https://zombvofhbsfepqrmszho.functions.supabase.co/astroIA",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ message: pergunta })
+          }
+        );
 
-  const data = await resp.json();
+        if (!resp.ok) {
+          throw new Error(`Erro ${resp.status} ao falar com o Astro.`);
+        }
 
-  return data.reply ?? "Sem resposta.";
-}
+        const data = await resp.json();
+        return data.reply ?? "Sem resposta.";
+      }
 
         if (resp.status === 401) {
           throw new Error("401 Unauthorized: a Edge Function está bloqueada. (verifique verify_jwt ou autorização)");
@@ -1540,4 +1543,5 @@
 </body>
 
 </html>
+
 
