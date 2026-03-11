@@ -968,15 +968,7 @@
         return data.reply ?? "Sem resposta.";
       }
 
-        if (resp.status === 401) {
-          throw new Error("401 Unauthorized: a Edge Function está bloqueada. (verifique verify_jwt ou autorização)");
-        }
-
-        const data = await resp.json();
-        // seu exemplo retorna { reply: ... }
-        return data.reply ?? data.resposta ?? JSON.stringify(data);
-      }
-
+       
       // =========================
       // UI helpers
       // =========================
@@ -1543,5 +1535,6 @@
 </body>
 
 </html>
+
 
 
